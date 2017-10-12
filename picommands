@@ -1,0 +1,25 @@
+# wan IP adress
+172.24.1.1
+
+# wifi dambi_framboos
+password: framboos
+ssh pi@172.24.1.1
+
+# linking jupyter notebook to localhost:8157
+ssh -NL 8888:localhost:8080 pi@172.24.1.1
+
+# mounting filesystem to ~/pi
+sshfs pi@172.24.1.1: pi
+
+# starting jupyter notebook with specific port
+jupyter notebook --port=8080
+
+# timelapse
+nohup raspistill -o a%06d.jpg -t 604800000 -tl 600000
+rsync -azh pi@172.24.1.1:/home/pi/timelapse/* /media/wouters/WouterSSD/timelapse2/ --progress
+
+ls *.jpg > stills.txt
+mencoder -nosound -ovc lavc -lavcopts vcodec=mpeg4:aspect=16/9:vbitrate=8000000 -vf scale=1920:1080 -o timelapse.avi -mf type=jpeg:fps=24 mf://@stills.txt
+
+# password & network
+framboos

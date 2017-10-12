@@ -1,0 +1,6 @@
+python server.py
+
+
+node_modules/.bin/bower-requirejs -c scripts/config.js -b ../
+
+

@@ -1,0 +1,4 @@
+#mainContainer{ overflow:hidden; }
+#image{ float:left; width:70%; }
+#stage{ float:left; width:70%; }
+#directions{ float:right; width:30%; }
