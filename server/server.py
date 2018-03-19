@@ -131,7 +131,7 @@ def begin():
     print("BEGIN BALLS")
     global process
     cmd = "python3 run.py"
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid) 
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, cwd=os.getcwd()) 
     return "OK"
 
 @app.route("/stop")
