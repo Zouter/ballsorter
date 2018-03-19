@@ -18,20 +18,22 @@ import matplotlib
 
 import atexit
 
+import subprocess as sp
+
+binwidth = 5
+
 def get_changed_pixels(image, background, pixeldiffcutoff=10):
     diff = image.astype(np.int16) - background.astype(np.int16)
     changedpixels = image[diff.max(2) >= pixeldiffcutoff]
     return changedpixels
 
 def count(changed_pixels):
-    return (changed_pixels / (2**4) * np.array([2**0, 2**4, 2**8])).sum(1).astype(np.int).tolist()
+    return (changed_pixels / (2**binwidth) * np.array([2**0, 2**binwidth, 2**(binwidth * 2)])).sum(1).astype(np.int).tolist()
 
 pixeldiffcutoff = 20
 
 class Master:
-    def __init__(self, folder, ssh=None, delete=False, save=False, gates=[], bins=[], decisionmaker_args = {}, processor_args = {}):
-        stop_framboos(ssh)
-
+    def __init__(self, folder, ssh=None, delete=False, save=False, gates=[], bins=[], pictures=[], decisionmaker_args = {}, processor_args = {}):
         self.server = Server()
         self.sorter = Sorter(self, ssh)
         self.decisionmaker = DecisionMaker(self, **decisionmaker_args)
@@ -49,7 +51,7 @@ class Master:
             [] for i in bins
         ]
 
-        initialData["directions"] = [list(i) for i in gates]
+        initialData["directions"] = [{"colors":list(colors), "picture":pictures[i]} for i, colors in enumerate(gates)]
         initialData["frameids"] = [-1]
 
         self.server.send(initialData, "initialize")
@@ -59,10 +61,10 @@ class Master:
         
     def run_camera(self, nseconds = 10):
         def listener(processor):
-            # Start a socket listening for connections on 0.0.0.0:8000 (0.0.0.0 means
-            # all interfaces)
+            # Start a socket listening for connections on 0.0.0.0:8002
+            sp.call("fuser 8002/tcp -k", shell=True) # kill everyone listening at 8002
             server_socket = socket.socket()
-            server_socket.bind(('0.0.0.0', 8000))
+            server_socket.bind(('0.0.0.0', 8002))
             server_socket.listen(0)
 
             # Accept a single connection and make a file-like object out of it
@@ -99,7 +101,6 @@ class Master:
             return image
 
         def start_stream(nseconds=10):
-            stdin, stdout, stderr = self.ssh.exec_command("pkill python3")
             stdin, stdout, stderr = self.ssh.exec_command("python3 flow2/stream.py " + str(nseconds) + " &")
 
         start_stream(nseconds)
@@ -121,8 +122,6 @@ class Master:
         
     def finish(self):
         print("finish")
-        if self.ssh is not None:
-            stdin, stdout, stderr = self.ssh.exec_command("pkill python3")
         self.processor.finish()
         self.sorter.finish()
 
@@ -221,16 +220,17 @@ class ImageProcessor:
             self.background = rgb
 
             if frameid % 1 == 0:
-                bincounts = np.bincount(counts, minlength=2**(3*4))
+                bincounts = np.bincount(counts, minlength=2**(3*binwidth))
 
-                newcounts = [model.predict_proba(bincounts.reshape(-1, 4096))[0, 1] for model in self.colorbin_models]
+                newcounts = [model.predict_proba(bincounts.reshape(-1, 2**(3*binwidth)))[0, 1] for model in self.colorbin_models]
+                #newcounts = [0, 0, 0, 0]
 
                 # send to server
                 packet = {
                    "signal":"newCounts",
                    "newcounts":[[float(np.max([i-0.5, 0])*2 * np.random.random())] for i in newcounts]
                 }
-                if frameid % 1 == 0:
+                if frameid % 3 == 0:
                     stream = io.BytesIO()
                     image.save(stream, format="png")
                     encodedimage = base64.b64encode(stream.getvalue())
@@ -245,14 +245,16 @@ class ImageProcessor:
         print(" FPS:        " + str(self.frameid/totaltime))
 
 class DecisionMaker:
-    def __init__(self, master, gatenames=("A", "B", "C", "D", "E"), knn_model=None):
+    def __init__(self, master, gatenames=("blue","blue_orange","green_orange","yellow","yellow_blue"), knn_model=None):
         self.master = master
         self.gatenames = gatenames
         self.knn_model = knn_model
         self.balls = []
+
+        print(gatenames)
     
     def decide(self, ballcounts, ballstart, ballend):
-        bincounts = np.bincount(ballcounts, minlength=2**(3*4))
+        bincounts = np.bincount(ballcounts, minlength=2**(3*binwidth))/(ballend-ballstart)
         
         self.balls.append({
                 "bincounts":bincounts,
@@ -267,24 +269,23 @@ class DecisionMaker:
             gateid = self.knn_model.predict([bincounts])[0]
         
         # send to server
-        packet = {
-            "signal":"decision",
-            "directionid":int(gateid)
-        }
+        if gateid in self.gatenames:
+            packet = {
+                "signal":"decision",
+                "directionid":self.gatenames.index(gateid)
+            }
 
-        self.master.server.send(packet, "publish")
+            self.master.server.send(packet, "publish")
 
         # send to sorter
-        self.master.sorter.send(np.random.choice(self.gatenames, 1)[0])
+        self.master.sorter.send(gateid)
 
 class Sorter:
     def __init__(self, master, ssh):
         self.master = master
         self.ssh = ssh
-        if self.ssh:
+        if self.ssh is not None:
             # start up the sorter on raspberry
-            stdin, stdout, stderr = ssh.exec_command("python3 flow2/sorter.py &")
-
             self.s = None
             start = time.time()
             while self.s is None and (time.time() - start < 2):
@@ -292,15 +293,19 @@ class Sorter:
                     # connect to socket
                     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     host ="172.24.1.1"
-                    port =8000
+                    port = 8001
                     s.connect((host,port))
                     self.s = s
                 except:
-                    print("Trying to connect...")
-                    time.sleep(0.1)
+                    print("Trying to connect to sorter...")
+                    time.sleep(0.05)
 
             if self.s is not None:
                 print("Connected to sorter")
+            else:
+                raise ValueError("Sorter cannot connect to port 8001")
+        else:
+            print("Not connecting sorter")
 
     def send(self, r):
         print("Sending gate", r)

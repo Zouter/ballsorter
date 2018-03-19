@@ -1,62 +1,110 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="">
 
-<!-- Optional theme -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-<style>
+    <title>De knikkersorteerder</title>
+
+    <link href="static/css/fonts.css" rel="stylesheet" type="text/css" />
 
 
-.axis path,
-.axis line {
-  fill: none;
-  stroke: #000;
-  shape-rendering: crispEdges;
-}
+    <script src="static/scripts/jquery.min.js"></script>
+    <script src="static/scripts/bootstrap.min.js"></script>
 
-.x.axis path {
-  display: none;
-}
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="static/css/bootstrap.min.css">
+    <!-- Bootstrap theme -->
+    <link rel="stylesheet" href="static/css/bootstrap-theme.min.css">
+    <!-- Our CSS -->
+    <link href="../static/css/index.css" rel="stylesheet" type="text/css" />
 
-.line {
-  fill: none;
-  stroke: steelblue;
-  stroke-width: 1.5px;
-}
+  </head>
 
-#mainContainer{ overflow:hidden; }
-#image{ float:left; width:70%; }
-#stage{ float:left; width:70%; }
-#directions{ float:right; width:30%; }
-
-</style>
 <body>
-<script src="static/scripts/require.js"></script>
-<script src="static/scripts/config.js"></script>
-<script src="static/scripts/main.js"></script>
+  <script src="static/scripts/require.js"></script>
+  <script src="static/scripts/config.js"></script>
+  <script src="static/scripts/main.js"></script>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="btn-group btn-group-justified" role="group">
-                <a class="btn btn-success" id="start" ><span class="glyphicon glyphicon-play"></span>&nbsp;Gogogo!</a>
-                <a class="btn btn-danger" id="stop"><span class="glyphicon glyphicon-stop"></span>&nbsp;Stooop!</a>
-                <a class="btn btn-default" id="connected">?</a>
-            </div>
+  <div class="wrapper">
+    <div>&nbsp;</div>
+
+    <!-- ***** CONTAINER ***** -->
+    <div class="container">
+      <section class="content-wrapper main-content clear-fix">
+
+        <div class="jumbotron">
+          <h1>
+            <span id="cell-titel">DE <span style="color:#002060" id="cell-strike">CELLEN</span>-SORTEERDER</span>
+            <span id="knikker-titel">knikker</span>
+            <img src="../static/img/biotechdag.jpg" alt="logoBiotechday" style="width:580px;float:right;position:relative;top:-30px;right:-58px" class="marginLeft">
+            <img src="../static/img/logoVIB.jpg" alt="logoVIB" style="width:150px;position:absolute;right:40px;top:80px" class="marginLeft">
+            <img src="../static/img/logo_UGent_NL_RGB_2400_kleur_witbg.png" alt="logoUgent" style="width:200px;position:absolute;left:40px;top:40px">
+          </h1>
+
+        </div>
+
+        <div class="row">
+          <div class="col-md-7">
+              <div class="row">
+                  <span id="live" style="opacity:0;"><span id="live2">●</span> Live  <span id="fps" style="font-size:10px;color:#AAAAAA"></span></span>
+                  <div class="marginLeft"><div id="image"></div></div>
+              </div>
+              <div class="row">
+                  <div id="stage" class="marginTopBig"><svg></svg></div>
+              </div>
+          </div>
+          <div class="col-md-5">
+              <div class="row">
+                  <a class="btn btn-success btn-lg marginBottomSmall" style="width:30%" id="start" ><span class="glyphicon glyphicon-play"></span>&nbsp;Start</a>
+                  <a class="btn btn-danger btn-lg marginBottomSmall" style="width:30%" id="stop"><span class="glyphicon glyphicon-stop"></span>&nbsp;Stop</a>
+                  <a class="btn btn-warning btn-lg marginBottomSmall" style="width:30%" id="connected">?</a>
+              </div>
+
+              <div class="row">
+                <div id="directions"><svg></svg></div>
+              </div>
         </div>
     </div>
-    <div class="row"><div id="image"></div></div>
-    <div class="row">
-        <div class="col-lg-6">
-            <div id="directions"><svg></svg></div>
-        </div>
-    </div>
-    <div class="row">
-        <div id="stage"><svg></svg></div>
-        <div id="log">FPS: <span id="fps"></span></div>
+      </section>
     </div>
 
-</div>
+    <div class="push"></div>
+  </div>
+
+  <!-- ***** FOOTER ***** -->
+  <footer class="footer">
+      <div class="container">
+          <p>DAMBI. All rights reserved.</p>
+      </div>
+  </footer>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </body>
