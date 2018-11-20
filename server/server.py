@@ -1,5 +1,5 @@
 import gevent
-from gevent.wsgi import WSGIServer
+from gevent.pywsgi import WSGIServer
 from gevent.queue import Queue
 
 from flask import Flask, Response, render_template, request
