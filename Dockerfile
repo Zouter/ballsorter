@@ -1,6 +1,6 @@
-FROM python:3.7
+FROM python:3.7.1-stretch
 
-RUN pip3 install numpy pandas paramiko flask sklearn gevent
+RUN pip3 install numpy pandas paramiko flask sklearn gevent Pillow requests matplotlib
 
 COPY . /
 

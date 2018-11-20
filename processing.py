@@ -62,7 +62,7 @@ class Master:
     def run_camera(self, nseconds = 10):
         def listener(processor):
             # Start a socket listening for connections on 0.0.0.0:8002
-            sp.call("fuser 8002/tcp -k", shell=True) # kill everyone listening at 8002
+            #sp.call("fuser 8002/tcp -k", shell=True) # kill everyone listening at 8002
             server_socket = socket.socket()
             server_socket.bind(('0.0.0.0', 8002))
             server_socket.listen(0)
