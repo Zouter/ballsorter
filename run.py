@@ -32,7 +32,7 @@ if local:
 else:
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect("172.24.1.1", username="pi", password="framboos")
+    ssh.connect("172.24.1.1", username="pi", password="framboos", allow_agent=False, look_for_keys=False)
 
 if ssh:
     processing.stop_framboos(ssh)
