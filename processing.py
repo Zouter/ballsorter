@@ -20,6 +20,8 @@ import atexit
 
 import subprocess as sp
 
+import pickle
+
 binwidth = 5
 
 def get_changed_pixels(image, background, pixeldiffcutoff=10):
@@ -154,6 +156,8 @@ class ImageProcessor:
         self.save = save
 
         self.start = 0
+        
+        self.model = pickle.load(open("cnn_model.pkl", "rb"))
             
     def process(self, image, frameid):
         if(frameid == 0):
@@ -188,13 +192,12 @@ class ImageProcessor:
             rolling_local = np.mean(self.diffs_local)
             
             rolling_fold = rolling_local/rolling_global
-
-            counts = count(changed_pixels)
             
             if not self.ball and rolling_local > self.ball_rolling_cutoff:
                 # new ball
                 print("Ball is passing by...")
                 self.ball = True
+                counts = self.model.predict(np.expand_dims(rgb, 0))
                 self.ballcounts = counts
                 self.ballstart = frameid
             elif self.ball and rolling_local < self.ball_rolling_cutoff:
@@ -205,14 +208,14 @@ class ImageProcessor:
                 self.master.decisionmaker.decide(self.ballcounts, self.ballstart, self.ballend)
             elif self.ball:
                 # add information
-                self.ballcounts.extend(counts)
+                counts = self.model.predict(np.expand_dims(rgb, 0))
+                self.ballcounts = np.concatenate((self.ballcounts, counts))
             
             self.log.append({
                 "rolling_global":rolling_global,
                 "rolling_local":rolling_local,
                 "rolling_fold":rolling_fold,
                 "ball":self.ball,
-                "counts":counts,
                 "frameid":frameid
             })
             
@@ -220,10 +223,10 @@ class ImageProcessor:
             self.background = rgb
 
             if frameid % 1 == 0:
-                bincounts = np.bincount(counts, minlength=2**(3*binwidth))
+                #bincounts = np.bincount(counts, minlength=2**(3*binwidth))
 
-                newcounts = [model.predict_proba(bincounts.reshape(-1, 2**(3*binwidth)))[0, 1] for model in self.colorbin_models]
-                #newcounts = [0, 0, 0, 0]
+                #newcounts = [model.predict_proba(bincounts.reshape(-1, 2**(3*binwidth)))[0, 1] for model in self.colorbin_models]
+                newcounts = [0, 0, 0, 0]
 
                 # send to server
                 packet = {
@@ -245,40 +248,36 @@ class ImageProcessor:
         print(" FPS:        " + str(self.frameid/totaltime))
 
 class DecisionMaker:
-    def __init__(self, master, gatenames=("blue","blue_orange","green_orange","yellow","yellow_blue"), knn_model=None):
+    def __init__(self, master, labels, knn_model=None):
         self.master = master
-        self.gatenames = gatenames
-        self.knn_model = knn_model
+        self.labels = labels
         self.balls = []
-
-        print(gatenames)
     
-    def decide(self, ballcounts, ballstart, ballend):
-        bincounts = np.bincount(ballcounts, minlength=2**(3*binwidth))/(ballend-ballstart)
+    def decide(self, ballcounts, ballstart, ballend):       
+        mean_ballcounts = ballcounts.mean(0)
         
         self.balls.append({
-                "bincounts":bincounts,
+                "mean_ballcounts":mean_ballcounts,
                 "ids":range(ballstart, ballend)
             })
         
         print("deciding...")
-
-        if self.knn_model is None:
-            gateid = np.random.choice(range(len(self.gatenames)))
-        else:
-            gateid = self.knn_model.predict([bincounts])[0]
+        
+        labelix = int(np.argmax(mean_ballcounts))
+        gateix = self.labels[labelix]["gate"]
+        
+        print(f"decided -- label: {labelix} and gate: {gateix}")
         
         # send to server
-        if gateid in self.gatenames:
-            packet = {
-                "signal":"decision",
-                "directionid":self.gatenames.index(gateid)
-            }
+        packet = {
+            "signal":"decision",
+            "directionid":gateix
+        }
 
-            self.master.server.send(packet, "publish")
+        self.master.server.send(packet, "publish")
 
         # send to sorter
-        self.master.sorter.send(gateid)
+        self.master.sorter.send(gateix)
 
 class Sorter:
     def __init__(self, master, ssh):

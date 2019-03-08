@@ -130,14 +130,14 @@ process = None
 def begin():
     print("BEGIN BALLS")
     global process
-    cmd = "python3 run.py"
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, cwd=os.getcwd()) 
+    cmd = ["python3", "run.py"]
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=False, cwd=os.getcwd()) 
     return "OK"
 
 @app.route("/stop")
 def stop():
     if process is not None:
-        os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+        process.terminate()
     print("STOP BALLS!!!")
     return "OK"
 

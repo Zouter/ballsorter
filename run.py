@@ -40,8 +40,8 @@ if ssh:
     stdin, stdout, stderr = ssh.exec_command("python3 flow2/sorter.py &") # start sorter socket at pi
 
 if local:
-    master = processing.Master("./images/run235/", ssh, delete=False, save=False, bins=bins, gates=gates, pictures=pictures, processor_args=processor_args, decisionmaker_args=decisionmaker_args)
+    master = processing.Master("./images/run_test1/", ssh, delete=False, save=True, bins=bins, gates=gates, pictures=pictures, processor_args=processor_args, decisionmaker_args=decisionmaker_args)
     master.run_local()
 else:
-    master = processing.Master("./images/run6/", ssh, delete=False, save=False, bins=bins, gates=gates, pictures=pictures, processor_args=processor_args, decisionmaker_args=decisionmaker_args)
+    master = processing.Master("./images/run_test1/", ssh, delete=False, save=True, bins=bins, gates=gates, pictures=pictures, processor_args=processor_args, decisionmaker_args=decisionmaker_args)
     master.run_camera(99999999999999)
