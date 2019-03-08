@@ -1,1 +1,1 @@
-sudo pip3 install numpy pandas paramiko flask sklearn gevent Pillow requests matplotlib
+sudo pip3 install numpy pandas paramiko flask sklearn gevent Pillow requests matplotlib tensorflow keras
