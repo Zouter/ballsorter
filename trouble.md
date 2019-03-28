@@ -1,9 +1,9 @@
-##3 stappenplan om alles op te starten
+## 3 stappenplan om alles op te starten
 0. Login op biotechdag user, wachtwoord: `framboos`
 1. Verbinding met raspberry pi
     * wifi netwerk `dambi_framboos`
     * wachtwoord: `framboos`
-Dit is cruciaal, zonder verbinding met het wifi netwerk zal niets werken
+    Dit is cruciaal, zonder verbinding met het wifi netwerk zal niets werken
 2. Start server:
     * Open terminal
     * `cd ballsorter`
@@ -12,7 +12,7 @@ Dit is cruciaal, zonder verbinding met het wifi netwerk zal niets werken
 3. Druk op start om te starten, wacht één seconde voor het opstarten van de machine, het live icoontje zal beginnen pinken (elke 30 frames pinkt dit icoontje af en aan) druk op stop om te stoppen. Easy :)
 
 
-##Troubleshooting:
+## Troubleshooting:
 * Webpagina doet raar:
     * Herlaad web pagina
     * Kill alle python processen met `pkill python3` in terminal, server zal opnieuw moeten opgestart worden
